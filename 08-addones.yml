@@ -1,0 +1,5 @@
+- name: check kubernetes cluster and apply addons
+  hosts: localhost
+  roles:
+    - { role: check-cluster, tags: ["check-cluster"] }
+    - { role: addons, tags: ["addons"] }

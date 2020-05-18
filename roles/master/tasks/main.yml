@@ -1,0 +1,114 @@
+# Install and start kube-master, simple check cluster status,include
+# - send etcd files when etcd server not on master
+# - send and start kue-apiserver, kube-controller-manager, kube-scheduler
+# - simple check cluster status use command `kubectl get cs`
+
+---
+- name: create kubernetes directory
+  file:
+    name: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/kubernetes
+    - /etc/kubernetes/pki
+    - /etc/kubernetes/pki/etcd
+    - ~/.kube
+    - /var/log/kubernetes
+
+- name: send etcd files when etcd not on master
+  block:
+  - name: send etcdctl to master
+    copy:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+      mode: u+x
+    with_items:
+      - /usr/local/bin/etcdctl
+
+  - name: send etcd tls file to master
+    copy:
+      src: "{{ item }}"
+      dest: /etc/kubernetes/pki/etcd/
+    with_fileglob:
+      - '/etc/kubernetes/pki/etcd/*'
+
+  - name: send etcd.sh to master
+    template:
+      src: etcd.sh.j2
+      dest: /etc/profile.d/etcd.sh
+
+  when: groups['etcd'] is defined and groups['etcd'] | intersect(groups['master']) | length == 0
+
+- name: kube-master
+  block:
+
+  - name: send kubernetes binary files
+    copy:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+      mode: u+x
+    with_items:
+      - /usr/local/bin/kube-apiserver
+      - /usr/local/bin/kube-controller-manager
+      - /usr/local/bin/kube-scheduler
+      - /usr/local/bin/kubectl
+
+  - name: send kubernetes tls files
+    copy:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+    with_filetree:
+      - '/etc/kubernetes/pki/'
+    when: item.state == 'file' and not item.src is search("/kubelet-client.*")
+
+  - name: send kubeconfig files
+    copy:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+    with_items:
+      - /etc/kubernetes/admin.kubeconfig
+      - /etc/kubernetes/controller-manager.kubeconfig
+      - /etc/kubernetes/scheduler.kubeconfig
+
+  - name: send kubernetes service files
+    template:
+      src: "{{ item }}"
+      dest: /usr/lib/systemd/system/{{ item.split('.')[:-1]|join('.') }}
+    with_items:
+      - kube-apiserver.service.j2
+      - kube-controller-manager.service.j2
+      - kube-scheduler.service.j2
+    notify:
+      - restart kubernetes master
+
+- name: start kubernetes
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+  when: not ( redo | default(false) )
+
+- name: set the kubeconfig of the kubectl on all master
+  copy:
+    src: /etc/kubernetes/admin.kubeconfig
+    dest: ~/.kube/config
+    remote_src: true
+
+- name: set kubectl
+  shell: "/usr/local/bin/kubectl completion bash > /etc/bash_completion.d/kubectl"
+
+- name: kubectl_get_cs
+  shell: "sleep 5 && /usr/local/bin/kubectl get cs"
+  register: kubectl_get_cs
+
+- name: check kubectl_get_cs
+  fail:
+    msg: "Please check kubernetes cluster status"
+  when: not kubectl_get_cs.rc == 0
+
+

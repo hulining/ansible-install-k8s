@@ -1,0 +1,44 @@
+- name: create etcd directory
+  file:
+    name: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/kubernetes/pki/etcd
+    - "{{ etcd.dataDir }}"
+    - /etc/etcd
+    - "{{ etcd.backup.scriptDir }}"
+    - "{{ etcd.backup.dataDir }}"
+
+- name: send etcd binary files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ item }}"
+    mode: u+x
+  with_items:
+    - /usr/local/bin/etcd
+    - /usr/local/bin/etcdctl
+
+- name: send etcd tls files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/kubernetes/pki/etcd/
+  with_fileglob:
+    - '/etc/kubernetes/pki/etcd/*'
+
+- name: send etcd config and systemd files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}/{{ item.src.split('.')[:-1]|join('.') }}"
+  with_items:
+    - { src: 'etcd.config.yml.j2', dest: '/etc/etcd' }
+    - { src: 'etcd.service.j2', dest: '/usr/lib/systemd/system' }
+  notify:
+    - restart etcd
+
+- name: start and enable etcd
+  systemd:
+    name: etcd
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  when: not ( redo | default(false) )

@@ -1,0 +1,5 @@
+- name: install kubernetes node
+  hosts: k8s-cluster
+  roles:
+    - { role: cni, tags: ["cni"] }
+    - { role: kubelet, tags: ["node"]}

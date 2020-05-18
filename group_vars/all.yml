@@ -1,0 +1,90 @@
+
+ntp_type: ntp
+ntp_servers:
+  - 10.70.36.233
+  - 192.168.105.41
+
+# 是否使用内部软件源
+internal_source: true
+# 内部 docker-ce 源地址
+internal_yum_source: http://10.71.1.35/docker-ce/linux/centos/7/$basearch/stable
+# 使用阿里云或清华 docker-ce 源
+external_yum_repo: https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/centos/docker-ce.repo
+
+etcd:
+  dataDir: /var/lib/etcd
+  initialClusterToken: 'etcd-k8s-cluster'
+  backup:
+    dataDir: /root/etcd_bak
+    scriptDir: /etc/etcd
+    count: "5"
+
+docker:
+  version: 19.03.8
+  dataDir: /var/lib/docker
+  registryMirrors:
+    - https://registry.docker-cn.com
+    - http://hub-mirror.c.163.com
+    - https://docker.mirrors.ustc.edu.cn
+  insecureRegistries:
+    - 10.71.1.35:35000
+#  execOpts:
+#    - 'native.cgroupdriver=systemd'
+
+KUBE_VERSION: v1.15.10
+
+# tls 证书的有效期
+days: 10000
+
+# 从 https://github.com/containernetworking/plugins/releases 选择 cni_plugins 软件包版本
+# 并保存至 /opt/packages/cni-plugins-amd64-{{ cni_plugins_version }}.tgz
+cni_plugins_version: v0.7.5
+
+# 选择 HA 采用的方式, haproxy 或 nginx
+ha_mode: haproxy
+
+VIP: 10.71.1.100
+VIP_NETMASK: 24
+# VIP 及 flannel 绑定的网卡
+INTERFACE_NAME: eth0
+KUBE_APISERVER: https://{% if groups['master'] | length !=1 %}{{ VIP }}:8443{% else %}{{ hostvars[groups['master'][0]].inventory_hostname }}:6443{% endif %}
+SvcCIDR: 10.96.0.0/24
+KubernetesClusterSVCIP: 10.96.0.1
+ClusterDns: 10.96.0.10
+PodCIDR: 10.244.0.0/16
+ServiceNodePortRange: 30000-40000
+ClusterDomain: cluster.local
+CLUSTER_NAME: 'kubernetes'
+infra_image: registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.1
+
+# 是否使用私有镜像仓库中的镜像作为 kubernetes 集群的基础镜像
+# 启动此选项后,所有基础镜像会从私有镜像仓库中拉取,且需要从私有镜像仓库中手动拉取 pause 镜像
+# 此选项适用于集群不能访问互联网的环境
+#base_image_in_private_registry: false
+#infra_image: {% if private_registry %}{{ docker.insecureRegistries[0] }}{% else %}registry.cn-hangzhou.aliyuncs.com{%endif%}/google_containers/pause:3.1
+
+apiserver:
+  advertiseAddress: "{{ inventory_hostname }}"
+  bind: "{{ inventory_hostname }}"
+  logLevel: 2
+  logFile: /var/log/kubernetes/kube-apiserver.log
+
+controllerManager:
+  bind: "{{ inventory_hostname }}"
+  logLevel: 2
+  logFile: /var/log/kubernetes/kube-controller-manager.log
+
+scheduler:
+  bind: "{{ inventory_hostname }}"
+  logLevel: 2
+  logFile: /var/log/kubernetes/kube-scheduler.log
+
+proxy:
+  mode: "ipvs"
+
+kubelet:
+  bind: "{{ inventory_hostname }}"
+  healthzBindAddress: "{{ inventory_hostname }}"
+  swap: false
+  logLevel: 2
+  logFile: /var/log/kubernetes/kubelet.log

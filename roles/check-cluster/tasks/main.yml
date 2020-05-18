@@ -1,0 +1,51 @@
+- name: create kube directory
+  file:
+    name: ~/.kube
+    state: directory
+  run_once: true
+  when: not ( redo | default(false) )
+
+- name: send admin.kubeconfig and healthz-rbac.yml files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: '/etc/kubernetes/admin.kubeconfig', dest: '~/.kube/config'}
+    - { src: 'healthz-rbac.yml', dest: '/etc/kubernetes/'}
+  run_once: true
+  when: not ( redo | default(false) )
+
+- name: config kube-ep.yml
+  template:
+    src: "{{ item }}"
+    dest: /etc/kubernetes/{{ item.split('.')[:-1]|join('.') }}
+  with_items:
+    - kube-ep.yml.j2
+  run_once: true
+  when: not ( redo | default(false) )
+
+- name: kubectl_get_cs
+  shell: /usr/local/bin/kubectl get cs
+  register: kubectl_get_cs
+
+- name: check kubectl_get_cs
+  fail:
+    msg: "Please check cluster status"
+  when: not kubectl_get_cs.rc == 0
+
+- name: apply healthz-rbac.yml and kube-ep.yml
+  shell:
+    cmd: /usr/local/bin/kubectl apply -f {{ item }}
+    chdir: "/etc/kubernetes"
+  with_items:
+    - "healthz-rbac.yml"
+    - "kube-ep.yml"
+  when: kubectl_get_cs.rc == 0
+
+- name: taint master nodes NoSchedule
+  shell: /usr/local/bin/kubectl taint nodes {% for host in groups['master'] %}{{ hostvars[host].hostname }} {% endfor %}  master-role.kubernetes.io/master="":NoSchedule
+  run_once: true
+
+- name: taint nodes nodes
+  shell: /usr/local/bin/kubectl taint nodes {% for host in groups['node'] %}{{ hostvars[host].hostname }} {% endfor %} node-role.kubernetes.io/worker=""
+  run_once: true

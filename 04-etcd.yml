@@ -1,0 +1,4 @@
+- name: install etcd
+  hosts: "{% if groups['etcd'] is not defined %}master{% else %}etcd{% endif %}"
+  roles:
+    - { role: etcd, tags: ["etcd"]}

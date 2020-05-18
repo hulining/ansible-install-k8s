@@ -1,0 +1,11 @@
+- name: restart kubernetes master
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+  when: not ( redo | default(false) )

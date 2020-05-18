@@ -1,0 +1,36 @@
+# Generate certificates and key files locally via openssl and create kubeconfig files, include
+# - kubernetes, etcd ca and key files
+# - controller-manager.kubeconfig for kube-controller-manager.service
+# - scheduler.kubeconfig for kube-scheduler.service
+# - admin.kubeconfig for client send request to kube-apiserver
+
+---
+- name: check if kubectl exists
+  stat:
+    path: /usr/local/bin/kubectl
+  register: kubectl_file
+
+- name: kubectl does not exist
+  fail:
+    msg: '请下载对应版本的相关二进制文件'
+  when: not kubectl_file.stat.exists
+
+- name: create the dir
+  file:
+    name: "{{ item }}"
+    state: directory
+  with_items:
+    - "/etc/kubernetes"
+    - "/etc/kubernetes/pki"
+    - "/etc/kubernetes/pki/etcd"
+
+- name: send openssl config
+  template:
+    src: openssl.cnf.j2
+    dest: /etc/kubernetes/pki/openssl.cnf
+
+- name: generate tls
+  script: "generate_tls.sh {{ days }}"
+
+- name: generate kubeconfig
+  include_tasks: kubeconfig.yml

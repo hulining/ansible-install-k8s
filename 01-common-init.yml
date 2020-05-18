@@ -1,0 +1,5 @@
+- name: common init
+  hosts: all
+  roles:
+    - { role: common-init, tags: ["common-init"]}
+

@@ -1,0 +1,5 @@
+- name: generate tls
+  hosts: localhost
+  roles:
+    - { role: tls, tags: ["tls"]}
+

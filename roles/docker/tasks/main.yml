@@ -1,0 +1,48 @@
+# Configure docker and start docker, include
+# - add docker-ce yum source, internal for can't connect public network
+# - install specified docker-ce version
+# - send docker daemon.json and restart docker service when file changed
+# - docker command completion
+
+---
+- name: create dir for docker
+  file:
+    name: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/docker
+
+- name: add docker-ce source
+  include_tasks: repo.yml
+
+- name: install docker-ce-{{ docker.version }}
+  yum:
+    name: docker-ce-{{ docker.version }}
+
+- name: send daemon.json for docker
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: 'daemon.json.j2', dest: '/etc/docker/daemon.json' }
+  notify:
+    - restart docker
+
+- name: start docker
+  systemd:
+    name: docker
+    state: started
+    daemon_reload: yes
+    enabled: yes
+
+- name: check if the completion script exists
+  stat:
+    path: /etc/bash_completion.d/docker
+  register: check_completion_files
+
+- name: set docker command completion script
+  copy:
+    src: /usr/share/bash-completion/completions/docker
+    dest: /etc/bash_completion.d/docker
+    remote_src: true
+  when: not check_completion_files.stat.exists

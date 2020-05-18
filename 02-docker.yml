@@ -1,0 +1,7 @@
+- name: install docker and prepare kubernetes environment
+  hosts: k8s-cluster
+  roles:
+    - { role: docker, tags: ["docker"] }
+    - { role: kubernetes-init, tags: ["k8s-init"] }
+
+

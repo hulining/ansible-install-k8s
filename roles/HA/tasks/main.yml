@@ -1,0 +1,15 @@
+# Install, configure, start HA for kubernetes cluster, include
+# - Install nginx or haproxy to listen on 8443 to forward the request sent to the kube-apiserver
+# - Install keepalived for high availability
+
+---
+- name: install nginx
+  include_tasks: nginx.yml
+  when: ha_mode == 'nginx'
+
+- name: install haproxy
+  include_tasks: haproxy.yml
+  when: ha_mode == 'haproxy'
+
+- name: install keepalived
+  include_tasks: keepalived.yml

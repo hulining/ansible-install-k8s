@@ -1,0 +1,20 @@
+# system basic configuration, include
+# - hostname setting
+# - clean iptables, stop and disabled firewalld
+# - disabled selinux
+# - set sshd "UseDNS" no, but not restart sshd service
+# - time sync, use ntp or chrony
+# - update kernel or not
+
+---
+- name: common tasks
+  include_tasks: common.yml
+
+- include_tasks: ntp.yml
+  when: ntp_type == 'ntp'
+
+- include_tasks: chrony.yml
+  when: ntp_type == 'chrony'
+
+- include_task: kernel.yml
+  when: update_kernel

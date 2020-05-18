@@ -1,0 +1,13 @@
+- name: add internal docker-ce source
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: 'docker-ce-internal.repo.j2', dest: '/etc/yum.repos.d/docker-ce-internal.repo' }
+  when: internal_source and internal_yum_source is defined
+
+- name: add external docker-ce source
+  get_url:
+    url: "{{ external_yum_repo }}"
+    dest: /etc/yum.repos.d/docker-ce.repo
+  when: not (internal_source and internal_yum_source is defined)

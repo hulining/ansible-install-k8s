@@ -1,0 +1,46 @@
+- name: system initialize
+  hosts: all
+  roles:
+    - { role: common-init, tags: ["common-init"]}
+
+- name: generate tls
+  hosts: localhost
+  roles:
+    - { role: tls, tags: ["tls"]}
+
+- name: install etcd
+  hosts: "{% if groups['etcd'] is not defined %}master{% else %}etcd{% endif %}"
+  roles:
+    - { role: etcd, tags: ["etcd"]}
+
+- name: install docker and prepare kubernetes environment
+  hosts: k8s-cluster
+  roles:
+    - { role: docker, tags: ["docker"]}
+    - { role: kubernetes-init, tags: ["k8s-init"]}
+
+- name: install HA,kube-master,cni
+  hosts: master
+  roles:
+    - { role: HA, tags: ["HA"], when: "groups['master'] | length  > 1"}
+    - { role: master, tags: ["master"] }
+
+- name: check kubernetes cluster apply addone
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - { role: check-cluster, tags: ["check-cluster"] }
+    - { role: bootstrap, tags: ["bootstrap"] }
+
+- name: install kubernetes node
+  hosts: k8s-cluster
+  roles:
+    - { role: cni, tags: ["cni"] }
+    - { role: kubelet, tags: ["node"]}
+
+- name: check kubernetes cluster apply addone
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - { role: check-cluster, tags: ["check-cluster"] }
+    - { role: addons, tags: ["addons"]}

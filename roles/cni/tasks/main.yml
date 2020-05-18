@@ -1,0 +1,18 @@
+# Create cni directory and send cni binary files to /opt/cni/bin
+
+---
+- name: create cni directory
+  file:
+    name: "{{ item }}"
+    state: directory
+  with_items:
+    - /opt/cni
+    - /opt/cni/bin/
+    - /etc/cni
+    - /etc/cni/net.d
+
+- name: send cni binary files
+  unarchive:
+    src: "/opt/packages/cni-plugins-amd64-{{ cni_plugins_version }}.tgz"
+    dest: /opt/cni/bin/
+    mode: u+x

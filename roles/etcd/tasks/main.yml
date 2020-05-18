@@ -1,0 +1,23 @@
+# install, configure, start etcd and some configuration for command alias and backup, include
+# - send etcd configure, binary and service files
+# - send etcd.sh and etcd_cron.sh for command alias and backup
+
+---
+- include_tasks: etcd.yml
+
+- name: send custom etcd script
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}/{{ item.src.split('.')[:-1]|join('.') }}"
+  with_items:
+    - { src: "etcd.sh.j2", dest: "/etc/profile.d" }
+    - { src: "etcd_cron.sh.j2",  dest: '{{ etcd.backup.scriptDir }}' }
+
+- name: etcd backup crontab
+  cron:
+    name: "etcd backup"
+    minute: "0"
+    hour: "2"
+    job: "bash {{etcd.backup.scriptDir}}/etcd_cron.sh  -c {{etcd.backup.count}} -d {{etcd.backup.dataDir}} > /dev/null "
+  tags:
+    - etcd-bak

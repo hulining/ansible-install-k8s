@@ -1,0 +1,5 @@
+- name: install HA,kube-master,cni
+  hosts: master
+  roles:
+    - { role: HA, tags: ["HA"], when: "groups['master'] | length  > 1" }
+    - { role: master, tags: ["master"] }

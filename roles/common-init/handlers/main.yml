@@ -1,0 +1,16 @@
+- name: restart ntpd
+  systemd:
+    name: ntpd
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: restart chronyd
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: restart sshd
+  debug: "For security reasons, you should manually restart sshd if it's necessary."

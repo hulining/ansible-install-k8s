@@ -1,0 +1,33 @@
+{
+{% if docker.execOpts is defined %}
+  "exec-opts": [{% for opt in docker.execOpts %}
+
+      "{{ opt }}"{% if not loop.last %},{% endif %}
+ {%- endfor %}
+
+  ],
+{% endif %}
+{% if docker.registryMirrors is defined %}
+  "registry-mirrors": [{% for mirror in docker.registryMirrors %}
+
+      "{{ mirror }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+
+  ],
+{% endif %}
+{% if docker.insecureRegistries is defined %}
+  "insecure-registries": [{% for registries in docker.insecureRegistries %}
+
+       "{{ registries }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+
+  ],
+{% endif %}
+  "data-root":"{{ docker.dataDir | default("/var/lib/docker") }}",
+  "storage-driver": "devicemapper",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m",
+    "max-file": "3"
+  }
+}

@@ -1,0 +1,41 @@
+- name: set hostname
+  hostname:
+    name: "{{ hostname }}"
+  when: hostname is defined and hostname
+
+- name: clean iptables
+  shell: "iptables -F -t {{ item }}"
+  with_items:
+    - "nat"
+    - "filter"
+  ignore_errors: true
+
+- name: stop firewalld
+  service:
+    name: firewalld
+    enabled: false
+    state: stopped
+  ignore_errors: true
+
+- name: close selinux temporary
+  shell: "setenforce 0"
+
+- name: close selinux forever
+  lineinfile:
+    dest: /etc/selinux/config
+    regexp: "^SELINUX="
+    line: "SELINUX=disabled"
+  ignore_errors: true
+
+- name: add epel repo
+  yum:
+    name: epel-release
+    state: latest
+    update_cache: yes
+  when: not internal_source
+
+- name: set sshd UseDNS no
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^#UseDNS"
+    line: "UseDNS no"

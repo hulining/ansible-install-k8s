@@ -1,0 +1,18 @@
+[master]
+10.71.1.33 hostname=k8s-m1 nodename=10.71.1.33 etcdClusterName=etcd-01
+10.71.1.34 hostname=k8s-m2 nodename=10.71.1.34 etcdClusterName=etcd-02
+10.71.1.35 hostname=k8s-m3 nodename=10.71.1.35 etcdClusterName=etcd-03
+
+[node]
+10.71.1.31 hostname=k8s-n1 nodename=10.71.1.31
+10.71.1.32 hostname=k8s-n2 nodename=10.71.1.32
+
+[k8s-cluster:children]
+master
+node
+
+[all:vars]
+ansible_ssh_public_key_file='~/.ssh/id_rsa.pub'
+ansible_ssh_private_key_file='~/.ssh/id_rsa'
+ansible_ssh_port=22
+ansible_ssh_user=root

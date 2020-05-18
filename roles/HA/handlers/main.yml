@@ -1,0 +1,20 @@
+- name: restart nginx
+  systemd:
+    name: nginx
+    enabled: yes
+    state: restarted
+  when: not ( redo | default(false) )
+
+- name: restart haproxy
+  systemd:
+    name: haproxy
+    enabled: yes
+    state: restarted
+  when: not ( redo | default(false) )
+
+- name: restart keepalived
+  systemd:
+    name: keepalived
+    enabled: yes
+    state: restarted
+  when: not ( redo | default(false) )

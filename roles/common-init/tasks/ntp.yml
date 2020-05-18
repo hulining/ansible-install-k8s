@@ -1,0 +1,24 @@
+- name: remove chrony
+  package:
+    name: chrony
+    state: absent
+  ignore_errors: True
+
+- name: install ntp
+  package:
+    name: ntp
+    state: present
+
+- name: send ntp configuration file
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+  notify:
+    - restart ntpd
+
+- name: start and enable ntpd
+  service:
+    name: ntpd
+    state: started
+    enabled: yes
+

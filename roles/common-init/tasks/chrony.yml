@@ -1,0 +1,24 @@
+- name: remove ntp
+  package:
+    name: ntp
+    state: absent
+  ignore_errors: true
+
+- name: install chrony
+  package:
+    name: chrony
+    state: present
+
+- name: send chrony configuration file
+  template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+  notify:
+    - restart chronyd
+
+- name: start and enable chronyd
+  service:
+    name: chronyd
+    state: started
+    enabled: yes
+

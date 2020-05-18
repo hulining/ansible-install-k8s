@@ -1,0 +1,18 @@
+- name: install haproxy
+  package:
+    name: haproxy
+    state: latest
+
+- name: send haproxy configuration file
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+  notify:
+    - restart haproxy
+
+- name: start haproxy
+  systemd:
+    name: haproxy
+    enabled: yes
+    state: started
+  when: not ( redo | default(false) )

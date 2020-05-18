@@ -1,0 +1,23 @@
+- name: install keepalived
+  package:
+    name: keepalived
+    state: latest
+
+- name: send keepalived configuration file
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { src: 'keepalived.conf.j2', dest: '/etc/keepalived/keepalived.conf'}
+    - { src: 'check.sh.j2', dest: '/etc/keepalived/check.sh'}
+  notify:
+    - restart keepalived
+
+- name: start keepalived
+  systemd:
+    name: keepalived
+    enabled: yes
+    state: started
+  with_items:
+    - keepalived
+  when: not ( redo | default(false) )

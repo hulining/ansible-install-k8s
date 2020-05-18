@@ -1,0 +1,49 @@
+- name: create kubernetes node directory
+  file:
+    name: "{{ item }}"
+    state: directory
+  with_items:
+    - /etc/kubernetes
+    - /etc/kubernetes/pki
+    - /etc/kubernetes/manifests
+    - /var/lib/kubelet/
+    - /var/log/kubernetes
+
+- name: send kubelet binary files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ item }}"
+    mode: u+x
+  with_items:
+    - /usr/local/bin/kubelet
+
+- name: get docker cgroupdriver
+  shell: "docker info --format '{% raw %}{{.CgroupDriver}}{% endraw %}'"
+  register: CgroupDriver
+
+- name: install kubelet
+  block:
+  - name: send bootsstrap and ca files
+    copy:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+    with_items:
+      - /etc/kubernetes/pki/ca.crt
+      - /etc/kubernetes/bootstrap.kubeconfig
+
+  - name: send kubelet config and service files
+    template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}/{{ item.src.split('.')[:-1]|join('.') }}"
+    with_items:
+      - { src: "kubelet.service.j2", dest: "/usr/lib/systemd/system" }
+      - { src: "kubelet-conf.yml.j2", dest: "/etc/kubernetes" }
+  notify:
+    - restart kubelet
+
+- name: start kubelet
+  systemd:
+    name: kubelet
+    state: started
+    enabled: yes
+    daemon_reload: yes
