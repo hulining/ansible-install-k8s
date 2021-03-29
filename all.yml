@@ -43,4 +43,4 @@
   gather_facts: no
   roles:
     - { role: check-cluster, tags: ["check-cluster"] }
-    #- { role: addons, tags: ["addons"]}
+    - { role: addons, tags: ["addons"]}
