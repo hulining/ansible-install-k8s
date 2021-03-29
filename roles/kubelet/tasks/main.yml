@@ -9,6 +9,20 @@
     - /var/lib/kubelet/
     - /var/log/kubernetes
 
+- name: delete kubelet tls files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_fileglob:
+    - "/etc/kubernetes/pki/kubelet*"
+
+- name: delete kubelet.kubeconfig
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/etc/kubernetes/kubelet.kubeconfig"
+
 - name: send kubelet binary files
   copy:
     src: "{{ item }}"
@@ -38,8 +52,8 @@
     with_items:
       - { src: "kubelet.service.j2", dest: "/usr/lib/systemd/system" }
       - { src: "kubelet-conf.yml.j2", dest: "/etc/kubernetes" }
-  notify:
-    - restart kubelet
+    notify:
+      - restart kubelet
 
 - name: start kubelet
   systemd:

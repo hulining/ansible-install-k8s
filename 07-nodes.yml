@@ -3,3 +3,4 @@
   roles:
     - { role: cni, tags: ["cni"] }
     - { role: kubelet, tags: ["node"]}
+    - { role: kube-proxy, tags: ["node"]}

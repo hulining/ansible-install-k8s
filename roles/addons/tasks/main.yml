@@ -8,7 +8,7 @@
     src: "{{ item }}"
     dest: /etc/kubernetes/addons/{{ item.split('.')[:-1]|join('.') }}
   with_items:
-    - "kube-proxy.yml.j2"
+    # - "kube-proxy.yml.j2"
     - "coredns.yml.j2"
     - "flannel.yml.j2"
     - "metrics-server.yml"
@@ -26,7 +26,7 @@
 - name: deploy coredns and metrics-server
   shell: /usr/local/bin/kubectl apply -f /etc/kubernetes/addons/{{ item }}
   with_items:
-    - "kube-proxy.yml"
+    # - "kube-proxy.yml"
     - "flannel.yml.j2"
     - "coredns.yml"
     - "metrics-server.yml"

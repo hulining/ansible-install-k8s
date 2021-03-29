@@ -43,9 +43,9 @@
   when: kubectl_get_cs.rc == 0
 
 - name: taint master nodes NoSchedule
-  shell: /usr/local/bin/kubectl taint nodes {% for host in groups['master'] %}{{ hostvars[host].hostname }} {% endfor %}  master-role.kubernetes.io/master="":NoSchedule
+  shell: /usr/local/bin/kubectl label nodes {% for host in groups['master'] %}{{ hostvars[host].hostname }} {% endfor %}  node-role.kubernetes.io/master="" --overwrite
   run_once: true
 
 - name: taint nodes nodes
-  shell: /usr/local/bin/kubectl taint nodes {% for host in groups['node'] %}{{ hostvars[host].hostname }} {% endfor %} node-role.kubernetes.io/worker=""
+  shell: /usr/local/bin/kubectl label nodes {% for host in groups['node'] %}{{ hostvars[host].hostname }} {% endfor %} node-role.kubernetes.io/node="" --overwrite
   run_once: true

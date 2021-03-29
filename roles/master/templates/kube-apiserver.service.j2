@@ -6,6 +6,7 @@ After=network.target
 [Service]
 ExecStart=/usr/local/bin/kube-apiserver \
   --authorization-mode=Node,RBAC \
+  --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256 \
   --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeClaimResize,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,Priority,PodPreset \
   --advertise-address={{ apiserver.advertiseAddress }} \
   --bind-address={{ apiserver.bind }}  \
@@ -16,6 +17,7 @@ ExecStart=/usr/local/bin/kube-apiserver \
   --audit-log-maxbackup=3 \
   --audit-log-maxsize=100 \
   --audit-log-path=/var/log/audit.log \
+  --audit-policy-file=/etc/kubernetes/audit-policy-minimal.yaml \
   --enable-swagger-ui=true \
   --storage-backend=etcd3 \
   --etcd-cafile=/etc/kubernetes/pki/etcd/ca.crt \
@@ -29,7 +31,7 @@ ExecStart=/usr/local/bin/kube-apiserver \
   --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt \
   --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key \
   --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname \
-  --runtime-config=api/all,settings.k8s.io/v1alpha1=true \
+  --runtime-config=api/all=true \
   --service-cluster-ip-range={{ SvcCIDR }} \
   --service-node-port-range={{ ServiceNodePortRange }} \
   --service-account-key-file=/etc/kubernetes/pki/sa.pub \
@@ -42,7 +44,6 @@ ExecStart=/usr/local/bin/kube-apiserver \
   --requestheader-extra-headers-prefix=X-Remote-Extra- \
   --proxy-client-cert-file=/etc/kubernetes/pki/front-proxy-client.crt \
   --proxy-client-key-file=/etc/kubernetes/pki/front-proxy-client.key \
-  --feature-gates=PodShareProcessNamespace=true \
 {% if apiserver.logFile is defined %}
   --logtostderr=false \
   --log-file={{ apiserver.logFile }} \

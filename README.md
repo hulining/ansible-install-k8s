@@ -3,7 +3,7 @@
 
 ## 说明
 
-- kube-proxy 采用 ds 方式部署
+- kube-proxy 采用二进制方式部署
 - 网络插件采用 flannel, 并以 ds 方式部署
 
 ## 使用
@@ -16,6 +16,7 @@
 - `kube-apiserver`
 - `kube-controller-manager`
 - `kube-scheduler`
+- `kube-proxy`
 - `kubelet`
 - `kubectl`
 - `etcd`

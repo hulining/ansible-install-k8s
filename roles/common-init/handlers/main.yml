@@ -13,4 +13,5 @@
     daemon_reload: yes
 
 - name: restart sshd
-  debug: "For security reasons, you should manually restart sshd if it's necessary."
+  debug: 
+    msg: "For security reasons, you should manually restart sshd if it's necessary."

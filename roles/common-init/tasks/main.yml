@@ -16,5 +16,5 @@
 - include_tasks: chrony.yml
   when: ntp_type == 'chrony'
 
-- include_task: kernel.yml
+- include_tasks: kernel.yml
   when: update_kernel

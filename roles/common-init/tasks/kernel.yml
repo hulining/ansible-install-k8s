@@ -1,0 +1,36 @@
+- name: send kernel repo configuration file
+  copy:
+    src: elrepo.repo
+    dest: /etc/yum.repos.d/
+
+- name: install kernel rpm
+  yum:
+    name: kernel-ml
+    state: latest
+    enablerepo: elrepo-kernel
+
+- name: set defaults kernel
+  shell: grub2-set-default 0
+
+- name: grub mkconfig
+  shell: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+- name: registry current grub configuration
+  command: grub2-editenv list
+  register: grub2_env
+
+- name: registry current grub list
+  command: awk '$1=="menuentry" {print i++":"$4}' /etc/grub2.cfg
+  register: grub2_list
+
+- name: print current grub list
+  debug: 
+    var: grub2_list.stdout_lines
+
+- name: print current grub configuration
+  debug: 
+    var: grub2_env.stdout
+
+- name: restart
+  debug: 
+    msg: Please restart device with 'reboot' command to upate kernel version.

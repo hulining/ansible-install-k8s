@@ -9,6 +9,13 @@
     - "{{ etcd.backup.scriptDir }}"
     - "{{ etcd.backup.dataDir }}"
 
+- name: set etcd dataDir mode=700
+  file:
+    name: "{{ etcd.dataDir }}"
+    state: directory
+    mode: 0700
+
+
 - name: send etcd binary files
   copy:
     src: "{{ item }}"
@@ -24,6 +31,8 @@
     dest: /etc/kubernetes/pki/etcd/
   with_fileglob:
     - '/etc/kubernetes/pki/etcd/*'
+  notify:
+    - restart etcd
 
 - name: send etcd config and systemd files
   template:
@@ -35,10 +44,10 @@
   notify:
     - restart etcd
 
-- name: start and enable etcd
+- name: restart and enable etcd
   systemd:
     name: etcd
-    state: started
+    state: restarted
     enabled: yes
     daemon_reload: yes
   when: not ( redo | default(false) )

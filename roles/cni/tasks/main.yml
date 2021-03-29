@@ -13,6 +13,6 @@
 
 - name: send cni binary files
   unarchive:
-    src: "/opt/packages/cni-plugins-amd64-{{ cni_plugins_version }}.tgz"
+    src: "/opt/packages/cni-plugins-linux-amd64-{{ cni_plugins_version }}.tgz"
     dest: /opt/cni/bin/
     mode: u+x

@@ -55,11 +55,11 @@
 
   - name: send kubernetes tls files
     copy:
-      src: "{{ item }}"
-      dest: "{{ item }}"
+      src: "{{ item.src }}"
+      dest: "{{ item.src}}"
     with_filetree:
       - '/etc/kubernetes/pki/'
-    when: item.state == 'file' and not item.src is search("/kubelet-client.*")
+    when: item.state == 'file' and not item.src is search("/kubelet.*")
 
   - name: send kubeconfig files
     copy:
@@ -69,6 +69,10 @@
       - /etc/kubernetes/admin.kubeconfig
       - /etc/kubernetes/controller-manager.kubeconfig
       - /etc/kubernetes/scheduler.kubeconfig
+  - name: send audit policy file
+    copy:
+      src: "audit-policy-minimal.yaml"
+      dest: "/etc/kubernetes/"
 
   - name: send kubernetes service files
     template:
