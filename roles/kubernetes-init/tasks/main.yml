@@ -21,6 +21,7 @@
       - bash-completion     # bash命令补全工具，需要重新登录服务器生效
       - perl           # 内核依赖
       - ipvsadm
+      - ipset          # kube-proxy ipvs 模式依赖
       - conntrack
       - libseccomp
       - net-tools
